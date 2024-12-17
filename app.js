@@ -1,5 +1,5 @@
 const CLIENT_ID = 'b95b505ced454db2a08dc886d60b55b2';
-const REDIRECT_URI = 'https://github.com/twooglin/NFF-Bingo';
+const REDIRECT_URI = 'https://twooglin.github.io/NFF-Bingo/';
 let accessToken = '';
 
 document.getElementById('login').onclick = login;

@@ -1,0 +1,30 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+#bingo-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin: 20px auto;
+    max-width: 500px;
+}
+.bingo-square {
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+    position: relative;
+}
+.bingo-square img {
+    width: 100%; /* Fit within the square */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: contain; /* Ensure the image is fully visible */
+    display: block;
+    margin: 0 auto;
+}
+input.artist-search {
+    width: 90%;
+    margin-top: 5px;
+    padding: 5px;
+    font-size: 0.9em;
+}

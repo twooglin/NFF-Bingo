@@ -1,3 +1,4 @@
+/* General body styling */
 body {
     font-family: Arial, sans-serif;
     text-align: center;
@@ -6,7 +7,6 @@ body {
     box-sizing: border-box;
     position: relative;
 }
-
 
 #background {
     background-image: url('background.png');
@@ -22,7 +22,6 @@ body {
     z-index: -1; /* Behind all content */
 }
 
-
 #content {
     position: relative;
     z-index: 1;
@@ -31,54 +30,61 @@ body {
 h1 {
     font-size: 1.8em;
     margin: 10px 0;
+    color: #333;
 }
 
+/* Bingo Board */
 #bingo-board {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, 1fr); /* Default: 5 columns for desktop */
     gap: 10px;
     margin: 20px auto;
     width: 90%;
-    max-width: 500px;
-    background: rgba(255, 255, 255, 0.8); /* Add slight background to improve readability */
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.9);
     padding: 10px;
     border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
+
 .bingo-square {
     background-color: #f9f9f9;
-    border: 1px solid #ccc;
+    border: 1px solid #ddd;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     aspect-ratio: 1 / 1; /* Maintains square shape */
-    position: relative;
     text-align: center;
+    font-size: 0.9em;
+    position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .bingo-square img {
-    width: 40%;
+    width: 50%;
     height: auto;
     object-fit: contain;
 }
 
 .artist-search {
     width: 90%;
-    margin-top: 5px;
     padding: 5px;
     font-size: 0.8em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
 }
 
 .dropdown {
     position: absolute;
     background: white;
     border: 1px solid #ccc;
-    max-height: 150px;
+    max-height: 120px;
     overflow-y: auto;
     width: 90%;
-    top: 40px;
-    left: 5%;
+    top: 35px;
     z-index: 10;
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -86,13 +92,21 @@ h1 {
 .dropdown-option {
     padding: 5px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.8em;
+    color: #333;
 }
 
 .dropdown-option:hover {
     background-color: #f0f0f0;
 }
 
+.correct-artist {
+    background-color: lightgreen;
+    border: 2px solid green;
+    font-weight: bold;
+}
+
+/* User Info */
 #user-info {
     display: flex;
     align-items: center;
@@ -100,12 +114,22 @@ h1 {
     gap: 10px;
     margin: 10px;
     font-size: 1em;
+    color: #333;
 }
 
 .avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    #bingo-board {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns on medium screens */
+        gap: 8px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -113,7 +137,11 @@ h1 {
         font-size: 1.5em;
     }
     #bingo-board {
-        grid-template-columns: repeat(3, 1fr); /* Show 3 columns on smaller screens */
+        grid-template-columns: repeat(3, 1fr); /* 3 columns on tablets */
+        gap: 8px;
+    }
+    .bingo-square {
+        font-size: 0.8em;
     }
 }
 
@@ -122,19 +150,16 @@ h1 {
         font-size: 1.2em;
     }
     #bingo-board {
-        grid-template-columns: repeat(2, 1fr); /* Show 2 columns on phones */
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on phones */
+        gap: 5px;
+    }
+    .bingo-square {
+        font-size: 0.7em;
     }
     .artist-search {
         font-size: 0.7em;
     }
     .dropdown-option {
-        font-size: 0.8em;
+        font-size: 0.7em;
     }
-}
-
-.correct-artist {
-    background-color: lightgreen; /* Highlight correct artist squares */
-    color: #000; /* Ensure text remains readable */
-    font-weight: bold;
-    border: 2px solid green;
 }

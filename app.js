@@ -3,17 +3,21 @@ const REDIRECT_URI = 'https://twooglin.github.io/NFF-Bingo/';
 let accessToken = '';
 let selectedArtists = new Set(); // Track unique artist entries
 
-// Step 1: Spotify Login
-document.addEventListener('DOMContentLoaded', () => {
+// Example: List of officially announced artists
+let announcedArtists = ['Taylor Swift', 'Artist 2', 'Artist 3']; // Replace with announced names
+
+window.onload = async () => {
     getAccessToken();
     toggleLoginButton();
     generateBingoBoard();
-});
+    highlightCorrectSquares();
+};
 
+// Toggle Spotify login button visibility
 function toggleLoginButton() {
     const loginButton = document.getElementById('login');
     if (accessToken) {
-        loginButton.style.display = 'none'; // Hide login button if logged in
+        loginButton.style.display = 'none';
     } else {
         loginButton.style.display = 'block';
         loginButton.onclick = () => {
@@ -23,7 +27,7 @@ function toggleLoginButton() {
     }
 }
 
-// Step 2: Get Access Token and Fetch User Info
+// Get Access Token and Fetch User Info
 function getAccessToken() {
     const hash = window.location.hash;
     if (hash) {
@@ -50,9 +54,11 @@ function displayUserInfo(profile) {
     document.body.prepend(userInfo);
 }
 
-// Step 3: Generate Bingo Board
+// Generate Bingo Board
 function generateBingoBoard() {
     const board = document.getElementById('bingo-board');
+    board.innerHTML = ''; // Clear previous content if any
+
     for (let i = 0; i < 25; i++) {
         const square = document.createElement('div');
         square.className = 'bingo-square';
@@ -70,8 +76,9 @@ function generateBingoBoard() {
     }
 }
 
+// Add Search Bar to Square
 function addSearchBar(square) {
-    square.innerHTML = ''; // Clear square
+    square.innerHTML = '';
     const searchInput = document.createElement('input');
     searchInput.className = 'artist-search';
     searchInput.placeholder = 'Type artist name';
@@ -81,7 +88,7 @@ function addSearchBar(square) {
     searchInput.focus();
 }
 
-// Step 4: Search Artists and Display Dropdown
+// Search Artists and Display Dropdown
 async function searchArtists(input, square) {
     if (input.value.length < 2) return;
 
@@ -91,10 +98,9 @@ async function searchArtists(input, square) {
     );
     const data = await response.json();
 
-    // Create dropdown
     const dropdown = document.createElement('div');
     dropdown.className = 'dropdown';
-    dropdown.innerHTML = ''; // Clear existing options
+    dropdown.innerHTML = '';
 
     data.artists.items.forEach((artist) => {
         if (!selectedArtists.has(artist.name)) {
@@ -106,7 +112,6 @@ async function searchArtists(input, square) {
         }
     });
 
-    // Replace or append dropdown
     if (square.querySelector('.dropdown')) {
         square.replaceChild(dropdown, square.querySelector('.dropdown'));
     } else {
@@ -114,10 +119,10 @@ async function searchArtists(input, square) {
     }
 }
 
-// Step 5: Select an Artist
+// Select an Artist
 function selectArtist(artist, square) {
-    selectedArtists.add(artist.name); // Track unique artist
-    square.innerHTML = ''; // Clear search bar and dropdown
+    selectedArtists.add(artist.name);
+    square.innerHTML = '';
 
     const artistImage = document.createElement('img');
     artistImage.src = artist.images[0]?.url || '';
@@ -130,34 +135,22 @@ function selectArtist(artist, square) {
     square.appendChild(artistImage);
     square.appendChild(artistName);
 
-    // Allow re-selection
     square.onclick = () => {
-        selectedArtists.delete(artist.name); // Remove previous selection
+        selectedArtists.delete(artist.name);
         addSearchBar(square);
     };
 }
 
-// Example: List of officially announced artists
-let announcedArtists = ['Taylor Swift', 'Artist 2', 'Artist 3']; // Replace with announced names
-
-// Function to highlight correct squares
+// Highlight Correct Squares
 function highlightCorrectSquares() {
     const squares = document.querySelectorAll('.bingo-square');
-
     squares.forEach((square) => {
         const artistName = square.querySelector('div')?.textContent;
-
         if (artistName && announcedArtists.includes(artistName)) {
-            square.classList.add('correct-artist'); // Add highlight class
+            square.classList.add('correct-artist');
         } else {
-            square.classList.remove('correct-artist'); // Remove highlight if no longer matches
+            square.classList.remove('correct-artist');
         }
     });
 }
 
-// Function to call after the board is generated
-window.onload = async () => {
-    await getAccessToken();
-    generateBingoBoard();
-    highlightCorrectSquares(); // Call this function to highlight matches
-};

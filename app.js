@@ -78,7 +78,7 @@ function generateBingoBoard() {
 
 // Add Search Bar to Square
 function addSearchBar(square) {
-    square.innerHTML = '';
+    square.innerHTML = ''; // Clear square content
     const searchInput = document.createElement('input');
     searchInput.className = 'artist-search';
     searchInput.placeholder = 'Type artist name';
@@ -98,6 +98,9 @@ async function searchArtists(input, square) {
     );
     const data = await response.json();
 
+    const existingDropdown = square.querySelector('.dropdown');
+    if (existingDropdown) existingDropdown.remove();
+
     const dropdown = document.createElement('div');
     dropdown.className = 'dropdown';
     dropdown.innerHTML = '';
@@ -112,20 +115,16 @@ async function searchArtists(input, square) {
         }
     });
 
-    if (square.querySelector('.dropdown')) {
-        square.replaceChild(dropdown, square.querySelector('.dropdown'));
-    } else {
-        square.appendChild(dropdown);
-    }
+    square.appendChild(dropdown);
 }
 
 // Select an Artist
 function selectArtist(artist, square) {
     selectedArtists.add(artist.name);
-    square.innerHTML = '';
+    square.innerHTML = ''; // Clear previous content
 
     const artistImage = document.createElement('img');
-    artistImage.src = artist.images[0]?.url || '';
+    artistImage.src = artist.images[0]?.url || 'default-artist.png'; // Use fallback image
     artistImage.alt = artist.name;
     artistImage.className = 'artist-image';
 
@@ -136,9 +135,11 @@ function selectArtist(artist, square) {
     square.appendChild(artistName);
 
     square.onclick = () => {
-        selectedArtists.delete(artist.name);
-        addSearchBar(square);
+        selectedArtists.delete(artist.name); // Remove artist
+        addSearchBar(square); // Add search bar again
     };
+
+    highlightCorrectSquares(); // Check if the artist matches announced ones
 }
 
 // Highlight Correct Squares
@@ -153,4 +154,3 @@ function highlightCorrectSquares() {
         }
     });
 }
-

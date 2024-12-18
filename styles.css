@@ -7,6 +7,7 @@ body {
     position: relative;
 }
 
+
 #background {
     background-image: url('background.png');
     background-size: cover; /* Cover entire viewport */
@@ -21,9 +22,15 @@ body {
     z-index: -1; /* Behind all content */
 }
 
+
 #content {
     position: relative;
     z-index: 1;
+}
+
+h1 {
+    font-size: 1.8em;
+    margin: 10px 0;
 }
 
 #bingo-board {
@@ -36,4 +43,98 @@ body {
     background: rgba(255, 255, 255, 0.8); /* Add slight background to improve readability */
     padding: 10px;
     border-radius: 10px;
+}
+.bingo-square {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1; /* Maintains square shape */
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+}
+
+.bingo-square img {
+    width: 40%;
+    height: auto;
+    object-fit: contain;
+}
+
+.artist-search {
+    width: 90%;
+    margin-top: 5px;
+    padding: 5px;
+    font-size: 0.8em;
+}
+
+.dropdown {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    width: 90%;
+    top: 40px;
+    left: 5%;
+    z-index: 10;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-option {
+    padding: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.dropdown-option:hover {
+    background-color: #f0f0f0;
+}
+
+#user-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px;
+    font-size: 1em;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.5em;
+    }
+    #bingo-board {
+        grid-template-columns: repeat(3, 1fr); /* Show 3 columns on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.2em;
+    }
+    #bingo-board {
+        grid-template-columns: repeat(2, 1fr); /* Show 2 columns on phones */
+    }
+    .artist-search {
+        font-size: 0.7em;
+    }
+    .dropdown-option {
+        font-size: 0.8em;
+    }
+}
+
+.correct-artist {
+    background-color: lightgreen; /* Highlight correct artist squares */
+    color: #000; /* Ensure text remains readable */
+    font-weight: bold;
+    border: 2px solid green;
 }

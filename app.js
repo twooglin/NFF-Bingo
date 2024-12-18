@@ -4,24 +4,37 @@ let accessToken = '';
 let selectedArtists = new Set(); // Track unique artist entries
 
 // Step 1: Spotify Login
-document.getElementById('login').onclick = () => {
-    const scope = 'user-read-private';
-    window.location.href = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${scope}&response_type=token`;
-};
+document.addEventListener('DOMContentLoaded', () => {
+    getAccessToken();
+    toggleLoginButton();
+    generateBingoBoard();
+});
 
-// Step 2: Get Access Token and User Info
-async function getAccessToken() {
-    const hash = window.location.hash;
-    if (hash) {
-        accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
-        await fetchSpotifyProfile();
+function toggleLoginButton() {
+    const loginButton = document.getElementById('login');
+    if (accessToken) {
+        loginButton.style.display = 'none'; // Hide login button if logged in
+    } else {
+        loginButton.style.display = 'block';
+        loginButton.onclick = () => {
+            const scope = 'user-read-private';
+            window.location.href = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${scope}&response_type=token`;
+        };
     }
 }
 
-// Fetch and Display Spotify User Profile
+// Step 2: Get Access Token and Fetch User Info
+function getAccessToken() {
+    const hash = window.location.hash;
+    if (hash) {
+        accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
+        fetchSpotifyProfile();
+    }
+}
+
 async function fetchSpotifyProfile() {
     const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `Bearer ${accessToken}` },
     });
     const profile = await response.json();
     displayUserInfo(profile);
@@ -50,25 +63,25 @@ function generateBingoBoard() {
             logo.src = 'NFF_logo.jpg';
             square.appendChild(logo);
         } else {
-            square.onclick = () => openSearchDropdown(square);
+            addSearchBar(square);
         }
 
         board.appendChild(square);
     }
 }
 
-// Step 4: Dropdown Search and Selection
-async function openSearchDropdown(square) {
-    const input = document.createElement('input');
-    input.className = 'artist-search';
-    input.placeholder = 'Type artist name';
-    input.oninput = () => searchArtists(input, square);
+function addSearchBar(square) {
+    square.innerHTML = ''; // Clear square
+    const searchInput = document.createElement('input');
+    searchInput.className = 'artist-search';
+    searchInput.placeholder = 'Type artist name';
+    searchInput.oninput = () => searchArtists(searchInput, square);
 
-    square.innerHTML = ''; // Clear square content
-    square.appendChild(input);
-    input.focus();
+    square.appendChild(searchInput);
+    searchInput.focus();
 }
 
+// Step 4: Search Artists and Display Dropdown
 async function searchArtists(input, square) {
     if (input.value.length < 2) return;
 
@@ -78,30 +91,33 @@ async function searchArtists(input, square) {
     );
     const data = await response.json();
 
+    // Create dropdown
     const dropdown = document.createElement('div');
     dropdown.className = 'dropdown';
+    dropdown.innerHTML = ''; // Clear existing options
 
-    data.artists.items.forEach(artist => {
+    data.artists.items.forEach((artist) => {
         if (!selectedArtists.has(artist.name)) {
             const option = document.createElement('div');
             option.className = 'dropdown-option';
             option.textContent = artist.name;
-
-            option.onclick = () => {
-                selectArtist(artist, square);
-                input.value = ''; // Reset search input
-            };
-
+            option.onclick = () => selectArtist(artist, square);
             dropdown.appendChild(option);
         }
     });
 
-    square.appendChild(dropdown);
+    // Replace or append dropdown
+    if (square.querySelector('.dropdown')) {
+        square.replaceChild(dropdown, square.querySelector('.dropdown'));
+    } else {
+        square.appendChild(dropdown);
+    }
 }
 
+// Step 5: Select an Artist
 function selectArtist(artist, square) {
-    selectedArtists.add(artist.name); // Add to unique entries
-    square.innerHTML = ''; // Clear search UI
+    selectedArtists.add(artist.name); // Track unique artist
+    square.innerHTML = ''; // Clear search bar and dropdown
 
     const artistImage = document.createElement('img');
     artistImage.src = artist.images[0]?.url || '';
@@ -114,12 +130,9 @@ function selectArtist(artist, square) {
     square.appendChild(artistImage);
     square.appendChild(artistName);
 
-    // Allow re-editing by clicking again
-    square.onclick = () => openSearchDropdown(square);
+    // Allow re-selection
+    square.onclick = () => {
+        selectedArtists.delete(artist.name); // Remove previous selection
+        addSearchBar(square);
+    };
 }
-
-// Initialize the App
-window.onload = async () => {
-    await getAccessToken();
-    generateBingoBoard();
-};

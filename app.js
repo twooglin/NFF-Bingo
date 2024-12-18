@@ -136,3 +136,28 @@ function selectArtist(artist, square) {
         addSearchBar(square);
     };
 }
+
+// Example: List of officially announced artists
+let announcedArtists = ['Taylor Swift', 'Artist 2', 'Artist 3']; // Replace with announced names
+
+// Function to highlight correct squares
+function highlightCorrectSquares() {
+    const squares = document.querySelectorAll('.bingo-square');
+
+    squares.forEach((square) => {
+        const artistName = square.querySelector('div')?.textContent;
+
+        if (artistName && announcedArtists.includes(artistName)) {
+            square.classList.add('correct-artist'); // Add highlight class
+        } else {
+            square.classList.remove('correct-artist'); // Remove highlight if no longer matches
+        }
+    });
+}
+
+// Function to call after the board is generated
+window.onload = async () => {
+    await getAccessToken();
+    generateBingoBoard();
+    highlightCorrectSquares(); // Call this function to highlight matches
+};

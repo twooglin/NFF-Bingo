@@ -3,15 +3,61 @@ const REDIRECT_URI = 'https://twooglin.github.io/NFF-Bingo/';
 let accessToken = '';
 let selectedArtists = new Set();
 
+// Import the necessary Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
+
+// Your Firebase configuration (replace with your actual config)
+const firebaseConfig = {
+    apiKey: "AIzaSyDrZyLpn4AbLiBFxKAUwhP_IRh9IpNTHgo",
+    authDomain: "nff-bingo.firebaseapp.com",
+    projectId: "nff-bingo",
+    storageBucket: "nff-bingo.firebasestorage.app",
+    messagingSenderId: "6806365159",
+    appId: "1:6806365159:web:94ef8b9bf6671f317b1342",
+    measurementId: "G-QVDE9RTWSB"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
+const provider = new SpotifyAuthProvider();
 
 // Example: List of officially announced artists - update with the actual lineup
-let announcedArtists = ['Taylor Swift', 'Phoebe Bridgers', 'The Lumineers', /* ...more artists */ ]; 
+let announcedArtists = ['Taylor Swift', 'Phoebe Bridgers', 'The Lumineers', /* ...more artists */];
+
+// Call this function when the Spotify login button is clicked
+function handleSpotifyLogin() {
+    signInWithPopup(auth, provider)
+        .then((result) => {
+            const credential = SpotifyAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            const user = result.user;
+            console.log('User signed in with Spotify:', user);
+            accessToken = token; // Store the Spotify access token
+            toggleLoginButton(); // Hide the login button after successful login
+            fetchSpotifyProfile(); // Fetch and display user info
+        })
+        .catch((error) => {
+            console.error('Error signing in with Spotify:', error);
+        });
+}
 
 window.onload = async () => {
-    getAccessToken();
     toggleLoginButton();
     generateBingoBoard();
     highlightCorrectSquares();
+
+    // Monitor authentication state changes
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log('User is signed in:', user);
+            loadResults(); // Load the user's data when they sign in
+        } else {
+            console.log('User is signed out');
+        }
+    });
 };
 
 // Toggle Spotify login button visibility
@@ -22,11 +68,7 @@ function toggleLoginButton() {
         loginButton.style.display = 'none';
     } else {
         loginButton.style.display = 'block';
-
-        loginButton.onclick = () => {
-            const scope = 'user-read-private';
-            window.location.href = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${scope}&response_type=token`;
-        };
+        loginButton.onclick = handleSpotifyLogin;
     }
 }
 
@@ -41,17 +83,30 @@ function getAccessToken() {
 }
 
 async function fetchSpotifyProfile() {
-    const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    try {
+        const response = await fetch('https://api.spotify.com/v1/me', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
 
-    const profile = await response.json();
-    displayUserInfo(profile);
-    localStorage.setItem('spotifyUserProfile', JSON.stringify(profile));
-    // Use Spotify ID as the user ID in Firebase
-    const userId = profile.id; 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    // ... rest of your code to save/load data using userId
+        const profile = await response.json();
+        displayUserInfo(profile);
+        localStorage.setItem('spotifyUserProfile', JSON.stringify(profile));
+
+        const user = auth.currentUser;
+        if (user) {
+            const userId = user.uid; // Use Firebase UID
+            // Store the Spotify user ID in the Firebase Realtime Database
+            set(ref(database, `users/${userId}/spotifyId`), profile.id)
+                .then(() => console.log('Spotify ID saved to Firebase!'))
+                .catch((error) => console.error('Error saving Spotify ID:', error));
+        }
+    } catch (error) {
+        console.error('Error fetching Spotify profile:', error);
+    }
 }
 
 function displayUserInfo(profile) {
@@ -95,6 +150,10 @@ function addSearchBar(square) {
     const searchInput = document.createElement('input');
     searchInput.className = 'artist-search';
     searchInput.placeholder = 'Type artist name';
+
+    // Store the searchInput in the square's dataset
+    square.dataset.searchInput = searchInput; // Store the searchInput in the square's dataset
+
     searchInput.oninput = () => searchArtists(searchInput, square);
 
     square.appendChild(searchInput);
@@ -155,8 +214,9 @@ function selectArtist(artist, square) {
     square.dataset.artist = artist.name;
 
     square.onclick = () => {
-        // Instead of removing the artist, show the search dropdown again
-        searchArtists(searchInput, square); // Assuming searchInput is accessible here
+        // Retrieve the searchInput from the square's dataset
+        const searchInput = square.dataset.searchInput;
+        searchArtists(searchInput, square); 
     };
     highlightCorrectSquares(); // Check if the artist matches announced ones
     saveResults(); // Save the results to local storage
@@ -175,7 +235,7 @@ function highlightCorrectSquares() {
     });
 }
 
-// Function to save results to localStorage
+// Function to save results to Firebase
 function saveResults() {
     const squares = document.querySelectorAll('.bingo-square');
     const results = {};
@@ -188,32 +248,54 @@ function saveResults() {
         }
     });
 
-    localStorage.setItem('bingoResults', JSON.stringify(results));
+    const user = auth.currentUser;
+    if (user) {
+        const userId = user.uid;
+        set(ref(database, `users/${userId}/bingoCard`), results)
+            .then(() => console.log('Results saved to Firebase!'))
+            .catch((error) => console.error('Error saving results:', error));
+    }
 }
 
-// Function to load results from localStorage
+// Function to load results from Firebase
 function loadResults() {
-    const savedResults = localStorage.getItem('bingoResults');
-    if (savedResults) {
-        const results = JSON.parse(savedResults);
-        const squares = document.querySelectorAll('.bingo-square');
+    const user = auth.currentUser;
+    if (user) {
+        const userId = user.uid;
+        const resultsRef = ref(database, `users/${userId}/bingoCard`);
+        get(resultsRef)
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    const results = snapshot.val();
+                    const squares = document.querySelectorAll('.bingo-square');
 
-        squares.forEach((square) => {
-            const index = square.dataset.index;
-            const artistName = results[index];
-            if (artistName) {
-                // Since we're only storing artist names, you'll need to fetch the image again
-                fetch(
-                    `https://api.spotify.com/v1/search?q=${artistName}&type=artist`,
-                    { headers: { Authorization: `Bearer ${accessToken}` } },
-                )
-                    .then((response) => response.json())
-                    .then((data) => {
-                        const artist = { name: artistName, images: data.artists.items[0].images };
-                        selectArtist(artist, square);
-                    })
-                    .catch((error) => console.error('Error fetching artist details:', error));
-            }
-        });
+                    for (const index in results) {
+                        if (results.hasOwnProperty(index)) {
+                            const artistName = results[index];
+                            const square = squares[index];
+
+                            // Since we're only storing artist names, you'll need to fetch the image again
+                            fetch(
+                                `https://api.spotify.com/v1/search?q=${artistName}&type=artist`,
+                                { headers: { Authorization: `Bearer ${accessToken}` } },
+                            )
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    if (data.artists.items.length > 0) {
+                                        const artist = {
+                                            name: artistName,
+                                            images: data.artists.items[0].images,
+                                        };
+                                        selectArtist(artist, square);
+                                    } else {
+                                        console.error('Artist not found on Spotify:', artistName);
+                                    }
+                                })
+                                .catch((error) => console.error('Error fetching artist details:', error));
+                        }
+                    }
+                }
+            })
+            .catch((error) => console.error('Error loading results:', error));
     }
 }

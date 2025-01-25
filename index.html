@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Festival Bingo</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <!-- Background Image -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <div id="background"></div>
 
-    <!-- Main Content -->
     <div id="content">
-        <h1>2025 Newport Folk Fest Bingo</h1>
-        <button id="login">Log in with Spotify</button>
-        <div id="bingo-board">
-            <!-- Bingo grid will populate here -->
-        </div>
+      <h1>2025 test Newport Folk Fest Bingo</h1>
+
+      <div id="auth-container">
+        <input type="email" id="signup-email" placeholder="Email" />
+        <input type="password" id="signup-password" placeholder="Password" />
+        <button onclick="handleSignUp(document.getElementById('signup-email').value, document.getElementById('signup-password').value)">Sign Up</button>
+
+        <input type="email" id="signin-email" placeholder="Email" />
+        <input type="password" id="signin-password" placeholder="Password" />
+        <button onclick="handleSignIn(document.getElementById('signin-email').value, document.getElementById('signin-password').value)">Sign In</button>
+      </div>
+
+      <button id="login">Log in with Spotify</button>
+      <div id="bingo-board"></div>
     </div>
 
     <script src="app.js"></script>
-</body>
+  </body>
 </html>

@@ -58,6 +58,14 @@ window.onload = async () => {
             console.log('User is signed out');
         }
     });
+    // Add event listener to the save button
+    document.getElementById('save-button').addEventListener('click', () => {
+        saveResults();
+        document.getElementById('save-message').textContent = 'Bingo board saved!';
+        setTimeout(() => {
+            document.getElementById('save-message').textContent = '';
+        }, 3000); // Clear the message after 3 seconds
+    });
 };
 
 // Toggle Spotify login button visibility

@@ -1,156 +1,173 @@
-const CLIENT_ID = 'b95b505ced454db2a08dc886d60b55b2';
-const REDIRECT_URI = 'https://twooglin.github.io/NFF-Bingo/';
+const CLIENT_ID = 'YOUR_SPOTIFY_CLIENT_ID'; // Replace with your actual Spotify Client ID
+const REDIRECT_URI = 'https://twooglin.github.io/NFF-Bingo/'; 
 let accessToken = '';
-let selectedArtists = new Set(); // Track unique artist entries
+let selectedArtists = new Set(); 
 
-// Example: List of officially announced artists
-let announcedArtists = ['Taylor Swift', 'Artist 2', 'Artist 3']; // Replace with announced names
+// Import the necessary Firebase modules
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { getDatabase, ref, set, get } from 'firebase/database';
+
+// Your Firebase configuration (replace with your actual config)
+const firebaseConfig = {
+    apiKey: "AIzaSyDrZyLpn4AbLiBFxKAUwhP_IRh9IpNTHgo",
+    authDomain: "nff-bingo.firebaseapp.com",
+    projectId: "nff-bingo",
+    storageBucket: "nff-bingo.firebasestorage.app",
+    messagingSenderId: "6806365159",
+    appId: "1:6806365159:web:94ef8b9bf6671f317b1342",
+    measurementId: "G-QVDE9RTWSB"
+  };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
+
+// Example: List of officially announced artists - update with the actual lineup
+let announcedArtists = ['Taylor Swift', 'Phoebe Bridgers', 'The Lumineers', /* ...more artists */ ]; 
+
+// Call these functions when the user clicks the sign-up/sign-in buttons
+function handleSignUp(email, password) {
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      console.log('User created:', user);
+      // Optionally redirect to another page or update UI
+    })
+    .catch((error) => {
+      console.error('Error creating user:', error);
+      // Display error message to the user
+    });
+}
+
+function handleSignIn(email, password) {
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      console.log('User signed in:', user);
+      // Optionally redirect to another page or update UI
+    })
+    .catch((error) => {
+      console.error('Error signing in:', error);
+      // Display error message to the user
+    });
+}
 
 window.onload = async () => {
-    getAccessToken();
-    toggleLoginButton();
-    generateBingoBoard();
-    highlightCorrectSquares();
+  getAccessToken();
+  toggleLoginButton();
+  generateBingoBoard();
+  highlightCorrectSquares();
+
+  // Monitor authentication state changes
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log('User is signed in:', user);
+      loadResults(); // Load the user's data when they sign in
+    } else {
+      console.log('User is signed out');
+      // Optionally show a sign-in/sign-up form
+    }
+  });
 };
 
 // Toggle Spotify login button visibility
 function toggleLoginButton() {
-    const loginButton = document.getElementById('login');
-    if (accessToken) {
-        loginButton.style.display = 'none';
-    } else {
-        loginButton.style.display = 'block';
-        loginButton.onclick = () => {
-            const scope = 'user-read-private';
-            window.location.href = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${scope}&response_type=token`;
-        };
-    }
+  // ... (your existing toggleLoginButton function)
 }
 
 // Get Access Token and Fetch User Info
 function getAccessToken() {
-    const hash = window.location.hash;
-    if (hash) {
-        accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
-        fetchSpotifyProfile();
-    }
+  // ... (your existing getAccessToken function)
 }
 
 async function fetchSpotifyProfile() {
-    const response = await fetch('https://api.spotify.com/v1/me', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    const profile = await response.json();
-    displayUserInfo(profile);
+  // ... (your existing fetchSpotifyProfile function)
 }
 
 function displayUserInfo(profile) {
-    const userInfo = document.createElement('div');
-    userInfo.id = 'user-info';
-    userInfo.innerHTML = `
-        <img src="${profile.images[0]?.url || 'default-avatar.png'}" alt="User Avatar" class="avatar">
-        <span>${profile.display_name}</span>
-    `;
-    document.body.prepend(userInfo);
+  // ... (your existing displayUserInfo function)
 }
 
 // Generate Bingo Board
 function generateBingoBoard() {
-    const board = document.getElementById('bingo-board');
-    board.innerHTML = ''; // Clear previous content if any
-
-    for (let i = 0; i < 25; i++) {
-        const square = document.createElement('div');
-        square.className = 'bingo-square';
-        square.dataset.index = i;
-
-        if (i === 12) { // Free space in the center
-            const logo = document.createElement('img');
-            logo.src = 'NFF_logo.jpg';
-            square.appendChild(logo);
-        } else {
-            addSearchBar(square);
-        }
-
-        board.appendChild(square);
-    }
+  // ... (your existing generateBingoBoard function)
 }
 
 // Add Search Bar to Square
 function addSearchBar(square) {
-    square.innerHTML = ''; // Clear square content
-    const searchInput = document.createElement('input');
-    searchInput.className = 'artist-search';
-    searchInput.placeholder = 'Type artist name';
-    searchInput.oninput = () => searchArtists(searchInput, square);
-
-    square.appendChild(searchInput);
-    searchInput.focus();
+  // ... (your existing addSearchBar function)
 }
 
 // Search Artists and Display Dropdown
 async function searchArtists(input, square) {
-    if (input.value.length < 2) return;
-
-    const response = await fetch(
-        `https://api.spotify.com/v1/search?q=${input.value}&type=artist`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const data = await response.json();
-
-    const existingDropdown = square.querySelector('.dropdown');
-    if (existingDropdown) existingDropdown.remove();
-
-    const dropdown = document.createElement('div');
-    dropdown.className = 'dropdown';
-    dropdown.innerHTML = '';
-
-    data.artists.items.forEach((artist) => {
-        if (!selectedArtists.has(artist.name)) {
-            const option = document.createElement('div');
-            option.className = 'dropdown-option';
-            option.textContent = artist.name;
-            option.onclick = () => selectArtist(artist, square);
-            dropdown.appendChild(option);
-        }
-    });
-
-    square.appendChild(dropdown);
+  // ... (your existing searchArtists function)
 }
 
 // Select an Artist
 function selectArtist(artist, square) {
-    selectedArtists.add(artist.name);
-    square.innerHTML = ''; // Clear previous content
-
-    const artistImage = document.createElement('img');
-    artistImage.src = artist.images[0]?.url || 'default-artist.png'; // Use fallback image
-    artistImage.alt = artist.name;
-    artistImage.className = 'artist-image';
-
-    const artistName = document.createElement('div');
-    artistName.textContent = artist.name;
-
-    square.appendChild(artistImage);
-    square.appendChild(artistName);
-
-    square.onclick = () => {
-        selectedArtists.delete(artist.name); // Remove artist
-        addSearchBar(square); // Add search bar again
-    };
-
-    highlightCorrectSquares(); // Check if the artist matches announced ones
+  // ... (your existing selectArtist function)
+  saveResults(); // Save the results to Firebase
 }
 
 // Highlight Correct Squares
 function highlightCorrectSquares() {
-    const squares = document.querySelectorAll('.bingo-square');
-    squares.forEach((square) => {
-        const artistName = square.querySelector('div')?.textContent;
-        if (artistName && announcedArtists.includes(artistName)) {
-            square.classList.add('correct-artist');
-        } else {
-            square.classList.remove('correct-artist');
+  // ... (your existing highlightCorrectSquares function)
+}
+
+// Function to save results to Firebase
+function saveResults() {
+  const squares = document.querySelectorAll('.bingo-square');
+  const results = {};
+
+  squares.forEach((square) => {
+    const artistName = square.dataset.artist;
+    if (artistName) {
+      const index = square.dataset.index;
+      results[index] = artistName;
+    }
+  });
+
+  const user = auth.currentUser;
+  if (user) {
+    const userId = user.uid;
+    set(ref(database, `users/${userId}/bingoCard`), results)
+      .then(() => console.log('Results saved to Firebase!'))
+      .catch((error) => console.error('Error saving results:', error));
+  }
+}
+
+// Function to load results from Firebase
+function loadResults() {
+  const user = auth.currentUser;
+  if (user) {
+    const userId = user.uid;
+    const resultsRef = ref(database, `users/${userId}/bingoCard`);
+    get(resultsRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const results = snapshot.val();
+          const squares = document.querySelectorAll('.bingo-square');
+
+          squares.forEach((square) => {
+            const index = square.dataset.index;
+            const artistName = results[index];
+            if (artistName) {
+              // Since we're only storing artist names, you'll need to fetch the image again
+              fetch(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+              })
+              .then(response => response.json())
+              .then(data => {
+                const artist = { name: artistName, images: data.artists.items[0].images }; 
+                selectArtist(artist, square);
+              })
+              .catch(error => console.error('Error fetching artist details:', error));
+            }
+          });
         }
-    });
+      })
+      .catch((error) => console.error('Error loading results:', error));
+  }
 }

@@ -29,8 +29,13 @@ function handleGoogleLogin() {
         .then((result) => {
             console.log('Google user signed in:', result.user);
         })
-        .catch((error) => console.error('Google login error:', error));
+        .catch((error) => {
+            console.error('Google login error:', error);
+        });
 }
+
+// Attach to the window object
+window.handleGoogleLogin = handleGoogleLogin;
 
 // Monitor User Authentication State
 onAuthStateChanged(auth, (user) => {

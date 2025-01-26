@@ -60,24 +60,25 @@ async function fetchSpotifyProfile() {
 }
 
 function saveSpotifyUserToFirebase(profile) {
-    console.log('Saving profile:', profile); // Log profile data to debug issues
+    console.log('Saving profile:', profile); // Debugging log to inspect profile data
 
     const userRef = ref(database, `users/${profile.id}/profile`);
 
-    // Create a user profile object
+    // Create a user profile object with all potential fields
     const userProfileData = {
-        displayName: profile.display_name,
-        spotifyId: profile.id,
+        displayName: profile.display_name || null, // Use null if field is missing
+        spotifyId: profile.id || null,
         profileImage: profile.images[0]?.url || null,
+        email: profile.email || null, // Use null if email is missing
     };
 
-    // Add the email field only if it exists
-    if (profile.email) {
-        userProfileData.email = profile.email;
-    }
+    // Filter out any fields with null or undefined values
+    const sanitizedProfile = Object.fromEntries(
+        Object.entries(userProfileData).filter(([_, value]) => value !== null)
+    );
 
-    // Save the user profile to Firebase
-    set(userRef, userProfileData)
+    // Save the sanitized profile to Firebase
+    set(userRef, sanitizedProfile)
         .then(() => console.log('Spotify user saved to Firebase!'))
         .catch((error) => console.error('Error saving Spotify user:', error));
 }

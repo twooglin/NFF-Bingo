@@ -1,13 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithPopup, SpotifyAuthProvider } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 
 const CLIENT_ID = 'b95b505ced454db2a08dc886d60b55b2';
 const REDIRECT_URI = 'https://twooglin.github.io/NFF-Bingo/';
 let accessToken = '';
-let selectedArtists = new Set();
 
-// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDrZyLpn4AbLiBFxKAUwhP_IRh9IpNTHgo",
     authDomain: "nff-bingo.firebaseapp.com",
@@ -20,66 +17,75 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const database = getDatabase(app);
-const provider = new SpotifyAuthProvider();
 
 window.onload = () => {
+    getAccessToken();
     toggleLoginButton();
     generateBingoBoard();
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            console.log("User is logged in:", user);
-            loadResults();
-        } else {
-            console.log("User is logged out");
-        }
-    });
-
-    document.getElementById("save-button").addEventListener("click", () => {
-        saveResults();
-        showSaveMessage("Bingo board saved!");
-    });
 };
 
-function toggleLoginButton() {
-    const loginButton = document.getElementById("login");
-    if (auth.currentUser) {
-        loginButton.style.display = "none";
-    } else {
-        loginButton.style.display = "block";
-        loginButton.onclick = handleSpotifyLogin;
-    }
+function handleSpotifyLogin() {
+    const scope = 'user-read-private';
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+        REDIRECT_URI
+    )}&scope=${scope}&response_type=token`;
+    window.location.href = authUrl;
 }
 
-function handleSpotifyLogin() {
-    signInWithPopup(auth, provider)
-        .then((result) => {
-            const credential = SpotifyAuthProvider.credentialFromResult(result);
-            accessToken = credential.accessToken;
-            toggleLoginButton();
-            fetchSpotifyProfile();
-        })
-        .catch((error) => console.error("Spotify login error:", error));
+function getAccessToken() {
+    const hash = window.location.hash;
+    if (hash) {
+        accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
+        localStorage.setItem('spotifyAccessToken', accessToken);
+        fetchSpotifyProfile();
+    }
 }
 
 async function fetchSpotifyProfile() {
     try {
-        const response = await fetch("https://api.spotify.com/v1/me", {
+        const response = await fetch('https://api.spotify.com/v1/me', {
             headers: { Authorization: `Bearer ${accessToken}` },
         });
+
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
         const profile = await response.json();
-        localStorage.setItem("spotifyUserProfile", JSON.stringify(profile));
-        console.log("Spotify profile:", profile);
+        console.log('Spotify Profile:', profile);
+        saveSpotifyUserToFirebase(profile);
     } catch (error) {
-        console.error("Error fetching Spotify profile:", error);
+        console.error('Error fetching Spotify profile:', error);
+    }
+}
+
+function saveSpotifyUserToFirebase(profile) {
+    const userRef = ref(database, `users/${profile.id}/profile`);
+    set(userRef, {
+        displayName: profile.display_name,
+        email: profile.email,
+        spotifyId: profile.id,
+        profileImage: profile.images[0]?.url || null,
+    })
+        .then(() => console.log('Spotify user saved to Firebase!'))
+        .catch((error) => console.error('Error saving Spotify user:', error));
+}
+
+function toggleLoginButton() {
+    const loginButton = document.getElementById('login');
+    const savedToken = localStorage.getItem('spotifyAccessToken');
+
+    if (savedToken) {
+        accessToken = savedToken;
+        loginButton.style.display = 'none';
+        fetchSpotifyProfile();
+    } else {
+        loginButton.style.display = 'block';
+        loginButton.onclick = handleSpotifyLogin;
     }
 }
 
 function generateBingoBoard() {
-    const board = document.getElementById("bingo-board");
+    const board = document.getElementById('bingo-board');
     if (!board) {
         console.error("Bingo board container not found");
         return;
@@ -122,13 +128,11 @@ async function searchArtists(input, square) {
         const dropdown = document.createElement("div");
         dropdown.className = "dropdown";
         data.artists.items.forEach((artist) => {
-            if (!selectedArtists.has(artist.name)) {
-                const option = document.createElement("div");
-                option.className = "dropdown-option";
-                option.textContent = artist.name;
-                option.onclick = () => selectArtist(artist, square);
-                dropdown.appendChild(option);
-            }
+            const option = document.createElement("div");
+            option.className = "dropdown-option";
+            option.textContent = artist.name;
+            option.onclick = () => selectArtist(artist, square);
+            dropdown.appendChild(option);
         });
         square.appendChild(dropdown);
     } catch (error) {
@@ -137,51 +141,8 @@ async function searchArtists(input, square) {
 }
 
 function selectArtist(artist, square) {
-    selectedArtists.add(artist.name);
     square.innerHTML = "";
     const artistName = document.createElement("div");
     artistName.textContent = artist.name;
     square.appendChild(artistName);
-    square.dataset.artist = artist.name;
-    saveResults();
-}
-
-function saveResults() {
-    const squares = document.querySelectorAll(".bingo-square");
-    const results = {};
-    squares.forEach((square) => {
-        const artistName = square.dataset.artist;
-        if (artistName) results[square.dataset.index] = artistName;
-    });
-    const user = auth.currentUser;
-    if (user) {
-        set(ref(database, `users/${user.uid}/bingoBoard`), results)
-            .then(() => console.log("Results saved"))
-            .catch((error) => console.error("Error saving results:", error));
-    }
-}
-
-function loadResults() {
-    const user = auth.currentUser;
-    if (user) {
-        const resultsRef = ref(database, `users/${user.uid}/bingoBoard`);
-        get(resultsRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                const results = snapshot.val();
-                const squares = document.querySelectorAll(".bingo-square");
-                Object.keys(results).forEach((index) => {
-                    const square = squares[index];
-                    const artistName = results[index];
-                    square.dataset.artist = artistName;
-                    square.innerHTML = `<div>${artistName}</div>`;
-                });
-            }
-        });
-    }
-}
-
-function showSaveMessage(message) {
-    const saveMessage = document.getElementById("save-message");
-    saveMessage.textContent = message;
-    setTimeout(() => (saveMessage.textContent = ""), 3000);
 }

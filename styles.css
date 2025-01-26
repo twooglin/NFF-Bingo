@@ -124,40 +124,42 @@ h1 {
     object-fit: cover;
 }
 
-/* Responsive Design - Enhanced for Phone Screens */
-@media (max-width: 768px) { /* Adjustments for typical phone widths */
+/* Responsive Design */
+@media (max-width: 1024px) {
+    #bingo-board {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns on medium screens */
+        gap: 8px;
+    }
+}
+
+@media (max-width: 768px) {
     h1 {
         font-size: 1.5em;
     }
     #bingo-board {
-        grid-template-columns: repeat(2, 1fr); /* 2 columns on phones */
-        gap: 5px; 
+        grid-template-columns: repeat(3, 1fr); /* 3 columns on tablets */
+        gap: 8px;
     }
     .bingo-square {
-        font-size: 0.8em; 
-    }
-    .artist-search {
-        font-size: 0.8em; 
-    }
-    .dropdown-option {
-        font-size: 0.8em; 
+        font-size: 0.8em;
     }
 }
 
-@media (max-width: 480px) { /* Further adjustments for smaller phones */
+@media (max-width: 480px) {
     h1 {
-        font-size: 1.2em; 
+        font-size: 1.2em;
     }
     #bingo-board {
-        gap: 3px; /* Reduce gap further */
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on phones */
+        gap: 5px;
     }
     .bingo-square {
-        font-size: 0.7em; 
+        font-size: 0.7em;
     }
     .artist-search {
         font-size: 0.7em;
     }
     .dropdown-option {
-        font-size: 0.7em; 
+        font-size: 0.7em;
     }
 }

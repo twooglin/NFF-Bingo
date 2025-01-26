@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 
 const CLIENT_ID = 'b95b505ced454db2a08dc886d60b55b2'; // Spotify Client ID
-let accessToken = '';
+let spotifyAccessToken = '';
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -14,32 +14,41 @@ const firebaseConfig = {
     storageBucket: "nff-bingo.firebasestorage.app",
     messagingSenderId: "6806365159",
     appId: "1:6806365159:web:94ef8b9bf6671f317b1342",
+    measurementId: "G-QVDE9RTWSB",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
+const provider = new GoogleAuthProvider();
 
-// Automatically sign in users anonymously
-signInAnonymously(auth).catch((error) => {
-    console.error('Anonymous login failed:', error);
-});
+// Google Login
+function handleGoogleLogin() {
+    signInWithPopup(auth, provider)
+        .then((result) => {
+            console.log('Google user signed in:', result.user);
+        })
+        .catch((error) => console.error('Google login error:', error));
+}
 
-// Handle user state changes
+// Monitor User Authentication State
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('User signed in:', user);
-        loadBingoBoard(user.uid);
+        loadBingoBoard(user.uid); // Load user's bingo board on login
+        document.getElementById('login').style.display = 'none'; // Hide login button
+        document.getElementById('user-info').textContent = `Welcome, ${user.displayName}`;
     } else {
         console.log('No user signed in');
+        document.getElementById('login').style.display = 'block'; // Show login button
     }
 });
 
 // Generate the Bingo Board
 function generateBingoBoard() {
     const board = document.getElementById('bingo-board');
-    board.innerHTML = ""; // Clear existing board
+    board.innerHTML = ""; // Clear the existing board
 
     for (let i = 0; i < 25; i++) {
         const square = document.createElement("div");
@@ -60,7 +69,7 @@ function generateBingoBoard() {
 
 // Add Search Bar for Artist Querying
 function addSearchBar(square) {
-    square.innerHTML = ""; // Clear square
+    square.innerHTML = ""; // Clear square content
     const searchInput = document.createElement("input");
     searchInput.className = "artist-search";
     searchInput.placeholder = "Type artist name";
@@ -73,9 +82,10 @@ function addSearchBar(square) {
 async function searchArtists(input, square) {
     if (input.value.length < 2) return;
 
+    const token = await getSpotifyAccessToken();
     const response = await fetch(
         `https://api.spotify.com/v1/search?q=${input.value}&type=artist`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     const data = await response.json();
 
@@ -100,8 +110,7 @@ function selectArtist(artist, square) {
     artistName.textContent = artist.name;
     square.appendChild(artistName);
 
-    // Save artist data locally or to Firebase
-    saveBingoBoard(auth.currentUser.uid);
+    saveBingoBoard(auth.currentUser.uid); // Save board after selection
 }
 
 // Save Bingo Board to Firebase
@@ -139,7 +148,26 @@ function loadBingoBoard(userId) {
         .catch((error) => console.error('Error loading bingo board:', error));
 }
 
+// Get Spotify Access Token (Client Credentials Flow)
+async function getSpotifyAccessToken() {
+    if (spotifyAccessToken) return spotifyAccessToken;
+
+    const clientId = CLIENT_ID;
+    const clientSecret = 'YOUR_SPOTIFY_CLIENT_SECRET'; // Replace with your Spotify Client Secret
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+        },
+        body: 'grant_type=client_credentials',
+    });
+
+    const data = await response.json();
+    spotifyAccessToken = data.access_token;
+    return spotifyAccessToken;
+}
+
 window.onload = () => {
     generateBingoBoard();
 };
-

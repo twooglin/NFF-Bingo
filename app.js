@@ -8,8 +8,8 @@ let accessToken = '';
 const firebaseConfig = {
     apiKey: "AIzaSyDrZyLpn4AbLiBFxKAUwhP_IRh9IpNTHgo",
     authDomain: "nff-bingo.firebaseapp.com",
-    databaseURL: "https://nff-bingo-default-rtdb.firebaseio.com",
     projectId: "nff-bingo",
+    databaseURL: "https://nff-bingo-default-rtdb.firebaseio.com", // Replace with your database URL
     storageBucket: "nff-bingo.firebasestorage.app",
     messagingSenderId: "6806365159",
     appId: "1:6806365159:web:94ef8b9bf6671f317b1342",
@@ -27,7 +27,7 @@ window.onload = () => {
 };
 
 function handleSpotifyLogin() {
-    const scope = 'user-read-private';
+    const scope = 'user-read-private user-read-email'; // Added user-read-email
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
         REDIRECT_URI
     )}&scope=${scope}&response_type=token`;
@@ -52,7 +52,7 @@ async function fetchSpotifyProfile() {
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
 
         const profile = await response.json();
-        console.log('Spotify Profile:', profile);
+        console.log('Spotify Profile:', profile); // Log profile data
         saveSpotifyUserToFirebase(profile);
     } catch (error) {
         console.error('Error fetching Spotify profile:', error);
@@ -60,24 +60,27 @@ async function fetchSpotifyProfile() {
 }
 
 function saveSpotifyUserToFirebase(profile) {
+    console.log('Saving profile:', profile); // Log profile data to debug issues
+
     const userRef = ref(database, `users/${profile.id}/profile`);
 
+    // Create a user profile object
     const userProfileData = {
         displayName: profile.display_name,
         spotifyId: profile.id,
         profileImage: profile.images[0]?.url || null,
     };
 
-    // Only include email if it exists
+    // Add the email field only if it exists
     if (profile.email) {
         userProfileData.email = profile.email;
     }
 
+    // Save the user profile to Firebase
     set(userRef, userProfileData)
         .then(() => console.log('Spotify user saved to Firebase!'))
         .catch((error) => console.error('Error saving Spotify user:', error));
 }
-
 
 function toggleLoginButton() {
     const loginButton = document.getElementById('login');
@@ -86,13 +89,12 @@ function toggleLoginButton() {
     if (savedToken && !accessToken) {
         accessToken = savedToken;
         loginButton.style.display = 'none';
-        fetchSpotifyProfile(); // Fetch user profile only once
+        fetchSpotifyProfile();
     } else if (!savedToken) {
         loginButton.style.display = 'block';
         loginButton.onclick = handleSpotifyLogin;
     }
 }
-
 
 function generateBingoBoard() {
     const board = document.getElementById('bingo-board');

@@ -7,15 +7,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="background"></div>
-
     <div id="content">
         <h1>2024 Newport Folk Fest Bingo</h1>
-
-        <button id="login">Log in with Spotify</button>
+        <button id="login" onclick="handleGoogleLogin()">Log in with Google</button>
+        <div id="user-info"></div>
         <div id="bingo-board"></div>
-        <button id="save-button">Save Bingo Board</button>
-        <div id="save-message"></div>
     </div>
 
     <script type="module" src="app.js"></script>

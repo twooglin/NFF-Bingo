@@ -141,38 +141,39 @@ async function searchArtists(input, square) {
         }
 
         const data = await response.json();
-        console.log("Spotify API Response:", data); // Debugging
+        console.log("Spotify API Response:", data);
 
         if (!data.artists || !data.artists.items || data.artists.items.length === 0) {
             console.warn("No artists found for:", input.value);
             return;
         }
 
-        // Remove any existing dropdown before creating a new one
+        // Remove existing dropdown before creating a new one
         let existingDropdown = square.querySelector(".dropdown");
         if (existingDropdown) {
             existingDropdown.remove();
         }
 
-        // Create the dropdown container
+        // Create dropdown container
         const dropdown = document.createElement("div");
         dropdown.className = "dropdown";
 
         // Populate dropdown with artist names
         data.artists.items.forEach((artist) => {
-            console.log(`Artist Found: ${artist.name}`, artist);
+            console.log(`Artist Found: ${artist.name}`);
 
             const option = document.createElement("div");
             option.className = "dropdown-option";
             option.textContent = artist.name;
             option.onclick = () => {
                 selectArtist(artist, square);
-                dropdown.remove(); // ✅ Ensure dropdown disappears when an option is clicked
+                dropdown.remove(); // Remove dropdown after selection
+                input.blur(); // Prevents search box from losing focus too soon
             };
             dropdown.appendChild(option);
         });
 
-        // ✅ Append dropdown to the correct element
+        // ✅ Append dropdown to the search bar's parent container
         square.appendChild(dropdown);
         console.log("Dropdown added to:", square);
     } catch (error) {
@@ -180,7 +181,6 @@ async function searchArtists(input, square) {
         alert("Error searching for artists. Please try again.");
     }
 }
-
 
 function selectArtist(artist, square) {
     if (!artist || !artist.name) {
@@ -223,7 +223,6 @@ function selectArtist(artist, square) {
     // ✅ Ensure the board is saved to Firebase after selection
     saveBingoBoard(auth.currentUser.uid);
 }
-
 
 // Save Bingo Board to Firebase
 function saveBingoBoard(userId) {

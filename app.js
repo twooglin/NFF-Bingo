@@ -24,16 +24,21 @@ const database = getDatabase(app);
 const provider = new GoogleAuthProvider();
 
 function handleGoogleLogin() {
+    const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
         .then((result) => {
             const user = result.user;
             console.log('Google user signed in:', user);
 
-            // Update UI with user details
-            document.getElementById('user-info').innerHTML = `
-                <img src="${user.photoURL}" class="avatar" alt="User Avatar">
-                <span>Welcome, ${user.displayName}!</span>
-            `;
+            // Ensure user details are properly displayed
+            if (user.displayName) {
+                document.getElementById('user-info').innerHTML = `
+                    <img src="${user.photoURL}" class="avatar" alt="User Avatar">
+                    <span>Welcome, ${user.displayName}!</span>
+                `;
+            } else {
+                document.getElementById('user-info').innerHTML = `<span>Welcome, User!</span>`;
+            }
 
             // Hide login button after successful login
             document.getElementById('login').style.display = 'none';
@@ -41,8 +46,10 @@ function handleGoogleLogin() {
         })
         .catch((error) => {
             console.error('Google login error:', error);
+            alert("Google login failed. Please try again.");
         });
 }
+
 
 // Attach to the window object
 window.handleGoogleLogin = handleGoogleLogin;
@@ -50,17 +57,25 @@ window.handleGoogleLogin = handleGoogleLogin;
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('User signed in:', user);
+
+        if (user.isAnonymous) {
+            console.warn("Anonymous login detected. Google login required.");
+            document.getElementById('user-info').innerHTML = `<span>Please log in with Google.</span>`;
+            return;
+        }
+
         loadBingoBoard(user.uid);
         document.getElementById('login').style.display = 'none';
         document.getElementById('user-info').innerHTML = `
             <img src="${user.photoURL}" class="avatar" alt="User Avatar">
-            <span>Welcome, ${user.displayName}!</span>
+            <span>Welcome, ${user.displayName || "User"}!</span>
         `;
     } else {
         console.log('No user signed in');
         document.getElementById('login').style.display = 'block';
     }
 });
+
 
 // Generate the Bingo Board
 function generateBingoBoard() {
@@ -169,8 +184,8 @@ function loadBingoBoard(userId) {
 async function getSpotifyAccessToken() {
     if (spotifyAccessToken) return spotifyAccessToken;
 
-    const clientId = CLIENT_ID;
-    const clientSecret = 'YOUR_SPOTIFY_CLIENT_SECRET'; // Replace with your Spotify Client Secret
+    const clientId = b95b505ced454db2a08dc886d60b55b2;
+    const clientSecret = '39bdaeeb64bd4de2a390918eb62ce588'; // Replace with your Spotify Client Secret
     const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {

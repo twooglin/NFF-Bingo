@@ -29,8 +29,25 @@
 
         <!-- Leaderboard Section -->
         <h2>Leaderboard</h2>
-        <div id="leaderboard"></div>
-    </div>
+        <div id="leaderboard-container">
+            <table id="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Correct</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Leaderboard entries will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Selected User's Bingo Board (Only one will show at a time) -->
+        <div id="selected-board-container" style="display: none;">
+            <h3 id="selected-user-title"></h3>
+            <div id="selected-bingo-board"></div>
+        </div>
 
     <!-- Load JavaScript -->
     <script type="module" src="app.js"></script>

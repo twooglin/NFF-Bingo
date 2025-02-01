@@ -199,6 +199,9 @@ function selectArtist(artist, square) {
     // Allow users to click the artist name to re-enable editing
     artistName.onclick = () => addSearchBar(square);
 
+    // Allow editing even after submission
+    square.onclick = () => addSearchBar(square);
+
     // Save the updated selection to Firebase
     saveBingoBoard(auth.currentUser.uid);
 }
@@ -266,7 +269,6 @@ async function getSpotifyAccessToken() {
     }
 }
 
-// Function to Submit or Update the Bingo Board
 function submitBingoBoard() {
     const user = auth.currentUser;
     if (!user) {
@@ -286,7 +288,7 @@ function submitBingoBoard() {
         boardData[index] = artistName;
     });
 
-    // Save to Firebase
+    // Save to Firebase and allow editing
     set(boardRef, {
         board: boardData,
         submittedAt: Date.now(),
@@ -295,8 +297,41 @@ function submitBingoBoard() {
     }).then(() => {
         alert("Bingo board submitted!");
         document.getElementById("submit-button").textContent = "Update Board"; // Change button text
+        document.getElementById("submit-button").onclick = updateBingoBoard; // Change function
     }).catch((error) => {
         console.error("Error submitting board:", error);
+    });
+}
+
+function updateBingoBoard() {
+    const user = auth.currentUser;
+    if (!user) {
+        alert("You must be logged in to update your board.");
+        return;
+    }
+
+    const userId = user.uid;
+    const boardRef = ref(database, `submittedBoards/${userId}`);
+
+    // Retrieve the updated bingo board
+    const board = document.querySelectorAll('.bingo-square');
+    const boardData = {};
+    board.forEach((square) => {
+        const index = square.dataset.index;
+        const artistName = square.querySelector("div")?.textContent || "";
+        boardData[index] = artistName;
+    });
+
+    // Update the same entry in Firebase
+    set(boardRef, {
+        board: boardData,
+        submittedAt: Date.now(),
+        displayName: user.displayName || "Anonymous",
+        correctCount: calculateCorrectGuesses(boardData)
+    }).then(() => {
+        alert("Bingo board updated!");
+    }).catch((error) => {
+        console.error("Error updating board:", error);
     });
 }
 
@@ -332,7 +367,6 @@ function checkForUpdates() {
     });
 }
 
-// Function to Load the Leaderboard
 function loadLeaderboard() {
     const leaderboardRef = ref(database, "submittedBoards");
 
@@ -340,23 +374,43 @@ function loadLeaderboard() {
         if (!snapshot.exists()) return;
 
         const boards = snapshot.val();
-        const sortedBoards = Object.values(boards).sort((a, b) => b.correctCount - a.correctCount);
+        const sortedBoards = Object.entries(boards).sort((a, b) => b[1].correctCount - a[1].correctCount);
 
-        const leaderboardDiv = document.getElementById("leaderboard");
-        leaderboardDiv.innerHTML = "<h3>Top Submitted Boards</h3>";
+        const leaderboardBody = document.getElementById("leaderboard-body");
+        leaderboardBody.innerHTML = ""; // Clear previous entries
 
-        sortedBoards.forEach((board, index) => {
-            const boardContainer = document.createElement("div");
-            boardContainer.className = "leaderboard-entry";
-            boardContainer.innerHTML = `
-                <p><strong>${index + 1}. ${board.displayName}</strong> - ${board.correctCount} Correct</p>
-                <div class="leaderboard-board">${formatLeaderboardBoard(board.board)}</div>
+        sortedBoards.forEach(([userId, board]) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="leaderboard-name">${board.displayName}</td>
+                <td>${board.correctCount}</td>
             `;
-            leaderboardDiv.appendChild(boardContainer);
+            row.onclick = () => displayUserBoard(userId, board);
+            leaderboardBody.appendChild(row);
         });
     }).catch((error) => {
         console.error("Error loading leaderboard:", error);
     });
+}
+
+function displayUserBoard(userId, board) {
+    const selectedBoardContainer = document.getElementById("selected-board-container");
+    const selectedBingoBoard = document.getElementById("selected-bingo-board");
+    const selectedUserTitle = document.getElementById("selected-user-title");
+
+    // Update the title with the selected user's name
+    selectedUserTitle.textContent = `${board.displayName}'s Bingo Board`;
+
+    // Generate the board layout
+    let boardHTML = '<div class="leaderboard-grid">';
+    for (let i = 0; i < 25; i++) {
+        const artistName = board.board[i] || "";
+        boardHTML += `<div class="leaderboard-square">${artistName}</div>`;
+    }
+    boardHTML += "</div>";
+
+    selectedBingoBoard.innerHTML = boardHTML;
+    selectedBoardContainer.style.display = "block"; // Show the container
 }
 
 // Helper Function to Format Leaderboard Boards

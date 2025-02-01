@@ -106,6 +106,7 @@ function addSearchBar(square) {
     searchInput.className = "artist-search";
     searchInput.placeholder = "Type artist name";
     searchInput.oninput = () => searchArtists(searchInput, square);
+    
     square.appendChild(searchInput);
     searchInput.focus();
 }
@@ -159,14 +160,38 @@ async function searchArtists(input, square) {
     }
 }
 
-// Select Artist and Save
 function selectArtist(artist, square) {
+    if (!artist || !artist.name) {
+        console.error("Invalid artist selected.");
+        return;
+    }
+
+    // Clear square before adding new elements
     square.innerHTML = "";
+
+    // Get the artist's image from Spotify (leave blank if none exists)
+    const artistImageUrl = artist.images?.[0]?.url || null;
+
+    // If the artist has an image, display it
+    if (artistImageUrl) {
+        const artistImage = document.createElement("img");
+        artistImage.src = artistImageUrl;
+        artistImage.alt = artist.name;
+        artistImage.className = "artist-image";
+        square.appendChild(artistImage);
+    }
+
+    // Create the artist name element
     const artistName = document.createElement("div");
     artistName.textContent = artist.name;
+    artistName.className = "selected-artist"; // Click to edit
     square.appendChild(artistName);
 
-    saveBingoBoard(auth.currentUser.uid); // Save board after selection
+    // Allow users to click the artist name to re-enable editing
+    artistName.onclick = () => addSearchBar(square);
+
+    // Save the updated selection to Firebase
+    saveBingoBoard(auth.currentUser.uid);
 }
 
 // Save Bingo Board to Firebase

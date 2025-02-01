@@ -109,22 +109,23 @@ h1 {
     position: absolute;
     background: white;
     border: 1px solid #ccc;
-    max-height: 150px;
+    max-height: 200px; /* Allow scrolling for more results */
     overflow-y: auto;
     width: 100%; /* Ensure it aligns with the input field */
     top: 100%; /* Moves dropdown below input */
     left: 0;
     z-index: 1000; /* Ensure it appears above other elements */
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
-    display: block; /* Ensure it's visible */
+    display: block !important; /* Ensure it's visible */
 }
 
 .dropdown-option {
-    padding: 5px;
+    padding: 8px;
     cursor: pointer;
-    font-size: 0.8em;
+    font-size: 0.9em;
     color: #333;
     background: white;
+    border-bottom: 1px solid #ddd;
 }
 
 .dropdown-option:hover {
@@ -311,4 +312,3 @@ button:active {
         padding: 10px;
     }
 }
-

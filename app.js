@@ -99,7 +99,6 @@ function generateBingoBoard() {
     }
 }
 
-// Add Search Bar for Artist Querying
 function addSearchBar(square) {
     square.innerHTML = ""; // Clear square content
 
@@ -112,7 +111,10 @@ function addSearchBar(square) {
         searchInput.select();
     });
 
-    searchInput.oninput = () => searchArtists(searchInput, square);
+    searchInput.oninput = () => {
+        searchArtists(searchInput, square);
+        console.log("Search triggered:", searchInput.value); // Debugging
+    };
 
     square.appendChild(searchInput);
     searchInput.focus();
@@ -147,9 +149,9 @@ async function searchArtists(input, square) {
         }
 
         // Remove any existing dropdown before creating a new one
-        const existingDropdown = square.querySelector(".dropdown");
+        let existingDropdown = square.querySelector(".dropdown");
         if (existingDropdown) {
-            square.removeChild(existingDropdown);
+            existingDropdown.remove();
         }
 
         // Create the dropdown container
@@ -165,13 +167,14 @@ async function searchArtists(input, square) {
             option.textContent = artist.name;
             option.onclick = () => {
                 selectArtist(artist, square);
-                dropdown.remove(); // Remove dropdown only when an artist is selected
+                dropdown.remove(); // ✅ Ensure dropdown disappears when an option is clicked
             };
             dropdown.appendChild(option);
         });
 
-        // Append dropdown to square
+        // ✅ Append dropdown to the correct element
         square.appendChild(dropdown);
+        console.log("Dropdown added to:", square);
     } catch (error) {
         console.error("Error searching artists on Spotify:", error);
         alert("Error searching for artists. Please try again.");

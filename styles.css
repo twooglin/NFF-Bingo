@@ -85,6 +85,21 @@ h1 {
     outline: none;
 }
 
+/* Style for Artist Images */
+.artist-image {
+    width: 50px;  /* Adjust size as needed */
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 5px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Hide broken image icons */
+.artist-image:empty {
+    display: none;
+}
+
 /* Dropdown Styling */
 .dropdown {
     position: absolute;
@@ -107,6 +122,15 @@ h1 {
 
 .dropdown-option:hover {
     background-color: #f0f0f0;
+}
+
+.selected-artist {
+    cursor: pointer;
+    text-decoration: underline;
+    color: blue;
+}
+.selected-artist:hover {
+    color: darkblue;
 }
 
 /* Highlight for Correct Artists */

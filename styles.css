@@ -88,13 +88,16 @@ h1 {
 
 /* Style for Artist Images */
 .artist-image {
-    width: 50px;  /* Adjust size as needed */
+    width: 50px;  
     height: 50px;
     border-radius: 50%;
-    margin-bottom: 5px;
+    margin-top: 5px; /* Ensure spacing between name and image */
     object-fit: cover;
     display: block;
+    max-width: 100%;
+    max-height: 100%;
 }
+
 
 /* Hide broken image icons */
 .artist-image:empty {
@@ -106,13 +109,15 @@ h1 {
     position: absolute;
     background: white;
     border: 1px solid #ccc;
-    max-height: 120px;
+    max-height: 150px; /* Increased height */
     overflow-y: auto;
-    width: 90%;
-    top: 35px;
-    z-index: 10;
+    width: 100%; /* Ensure it aligns with the input field */
+    top: 100%; /* Moves below input */
+    left: 0;
+    z-index: 1000; /* Ensure it appears above other elements */
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
 }
+
 
 .dropdown-option {
     padding: 5px;

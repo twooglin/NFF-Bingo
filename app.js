@@ -23,11 +23,21 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 const provider = new GoogleAuthProvider();
 
-// Google Login
 function handleGoogleLogin() {
     signInWithPopup(auth, provider)
         .then((result) => {
-            console.log('Google user signed in:', result.user);
+            const user = result.user;
+            console.log('Google user signed in:', user);
+
+            // Update UI with user details
+            document.getElementById('user-info').innerHTML = `
+                <img src="${user.photoURL}" class="avatar" alt="User Avatar">
+                <span>Welcome, ${user.displayName}!</span>
+            `;
+
+            // Hide login button after successful login
+            document.getElementById('login').style.display = 'none';
+
         })
         .catch((error) => {
             console.error('Google login error:', error);
@@ -37,16 +47,18 @@ function handleGoogleLogin() {
 // Attach to the window object
 window.handleGoogleLogin = handleGoogleLogin;
 
-// Monitor User Authentication State
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('User signed in:', user);
-        loadBingoBoard(user.uid); // Load user's bingo board on login
-        document.getElementById('login').style.display = 'none'; // Hide login button
-        document.getElementById('user-info').textContent = `Welcome, ${user.displayName}`;
+        loadBingoBoard(user.uid);
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('user-info').innerHTML = `
+            <img src="${user.photoURL}" class="avatar" alt="User Avatar">
+            <span>Welcome, ${user.displayName}!</span>
+        `;
     } else {
         console.log('No user signed in');
-        document.getElementById('login').style.display = 'block'; // Show login button
+        document.getElementById('login').style.display = 'block';
     }
 });
 

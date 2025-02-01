@@ -419,6 +419,7 @@ window.onload = () => {
     });
 };
 
-window.onload = () => {
-    generateBingoBoard();
-};
+// Expose functions globally so they can be called from index.html
+window.submitBingoBoard = submitBingoBoard;
+window.clearBingoBoard = clearBingoBoard;
+

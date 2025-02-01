@@ -184,26 +184,53 @@ h1 {
     }
 }
 
-/* Leaderboard Styling */
-#leaderboard {
-    margin-top: 20px;
-    padding: 10px;
+/* 🚀 Leaderboard Table Styling */
+#leaderboard-container {
+    margin: 20px auto;
+    max-width: 400px;
     background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+    overflow-x: auto;
 }
 
-.leaderboard-entry {
-    margin-bottom: 10px;
-    padding: 10px;
-    background: #f9f9f9;
-    border-radius: 5px;
+#leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#leaderboard-table th, #leaderboard-table td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
     text-align: center;
 }
 
+#leaderboard-table th {
+    background: #f4f4f4;
+    font-weight: bold;
+}
+
+/* Highlight clickable rows */
+#leaderboard-body tr {
+    cursor: pointer;
+}
+
+#leaderboard-body tr:hover {
+    background: #f0f0f0;
+}
+
+/* Selected Board Display */
+#selected-board-container {
+    margin-top: 20px;
+    padding: 10px;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Display selected bingo board in a grid */
 .leaderboard-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -252,11 +279,6 @@ button {
 
 #submit-button:hover {
     background-color: #218838;
-}
-
-#submit-button:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
 }
 
 /* Clear Board Button */

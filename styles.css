@@ -38,21 +38,21 @@ h1 {
     color: #333;
 }
 
-/* Bingo Board */
 #bingo-board {
     display: grid;
     grid-template-columns: repeat(5, 1fr); /* Always 5 columns */
+    grid-template-rows: repeat(5, 1fr); /* Always 5 rows */
     gap: 5px;
     margin: 20px auto;
-    width: 95%;
-    max-width: 600px;
+    width: 100%;
+    max-width: 95vw; /* Ensure full width on small screens */
     background: rgba(255, 255, 255, 0.9);
     padding: 10px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Bingo Squares */
+/* Bingo Squares - Ensure Consistency */
 .bingo-square {
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -62,7 +62,7 @@ h1 {
     align-items: center;
     aspect-ratio: 1 / 1; /* Ensures all squares remain perfectly square */
     text-align: center;
-    font-size: 1em; /* Default text size */
+    font-size: 1em;
     position: relative;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -134,23 +134,27 @@ h1 {
     object-fit: cover;
 }
 
-/* ✅ Responsive Design (Keep Board 5x5) */
+/* Responsive Design - Keep 5x5 on Mobile */
 @media (max-width: 768px) {
     #bingo-board {
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
         width: 100%;
         max-width: 95%;
     }
     .bingo-square {
-        font-size: 0.9em; /* Reduce text size slightly on smaller screens */
+        font-size: 0.9em;
     }
 }
 
 @media (max-width: 480px) {
     #bingo-board {
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
         width: 100%;
         max-width: 90%;
     }
     .bingo-square {
-        font-size: 0.8em; /* Further reduce text size on phones */
+        font-size: 0.8em;
     }
 }

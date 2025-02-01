@@ -102,17 +102,18 @@ function generateBingoBoard() {
 // Add Search Bar for Artist Querying
 function addSearchBar(square) {
     square.innerHTML = ""; // Clear square content
+
     const searchInput = document.createElement("input");
     searchInput.className = "artist-search";
     searchInput.placeholder = "Type artist name";
     searchInput.oninput = () => searchArtists(searchInput, square);
-    
+
     square.appendChild(searchInput);
     searchInput.focus();
 }
 
 async function searchArtists(input, square) {
-    if (input.value.length < 2) return;
+    if (input.value.length < 2) return; // Require at least 2 characters
 
     const token = await getSpotifyAccessToken();
     if (!token) {
@@ -132,20 +133,26 @@ async function searchArtists(input, square) {
         }
 
         const data = await response.json();
-        console.log("Spotify API Response:", data); // Log the response
+        console.log("Spotify API Response:", data); // Log for debugging
 
-        // Ensure artists exist before proceeding
         if (!data.artists || !data.artists.items || data.artists.items.length === 0) {
             console.warn("No artists found for:", input.value);
-            alert("No artists found. Try a different search.");
             return;
         }
 
+        // Remove any existing dropdown before creating a new one
+        const existingDropdown = square.querySelector(".dropdown");
+        if (existingDropdown) {
+            square.removeChild(existingDropdown);
+        }
+
+        // Create the dropdown container
         const dropdown = document.createElement("div");
         dropdown.className = "dropdown";
 
+        // Populate dropdown with artist names
         data.artists.items.forEach((artist) => {
-            console.log(`Artist Found: ${artist.name}`, artist); // Log artist data
+            console.log(`Artist Found: ${artist.name}`, artist); // Debugging
 
             const option = document.createElement("div");
             option.className = "dropdown-option";
@@ -154,8 +161,7 @@ async function searchArtists(input, square) {
             dropdown.appendChild(option);
         });
 
-        square.innerHTML = "";
-        square.appendChild(input);
+        // Append dropdown to square
         square.appendChild(dropdown);
     } catch (error) {
         console.error("Error searching artists on Spotify:", error);

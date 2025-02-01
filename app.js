@@ -373,11 +373,16 @@ function loadLeaderboard() {
     get(leaderboardRef).then((snapshot) => {
         if (!snapshot.exists()) return;
 
+        // Ensure leaderboard elements exist
+        const leaderboardBody = document.getElementById("leaderboard-body");
+        if (!leaderboardBody) {
+            console.error("Leaderboard body element not found in the HTML.");
+            return;
+        }
+        leaderboardBody.innerHTML = ""; // Clear previous entries
+
         const boards = snapshot.val();
         const sortedBoards = Object.entries(boards).sort((a, b) => b[1].correctCount - a[1].correctCount);
-
-        const leaderboardBody = document.getElementById("leaderboard-body");
-        leaderboardBody.innerHTML = ""; // Clear previous entries
 
         sortedBoards.forEach(([userId, board]) => {
             const row = document.createElement("tr");

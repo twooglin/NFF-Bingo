@@ -106,6 +106,12 @@ function addSearchBar(square) {
     const searchInput = document.createElement("input");
     searchInput.className = "artist-search";
     searchInput.placeholder = "Type artist name";
+
+    // ✅ Ensure focus remains on input
+    searchInput.addEventListener("focus", () => {
+        searchInput.select();
+    });
+
     searchInput.oninput = () => searchArtists(searchInput, square);
 
     square.appendChild(searchInput);
@@ -113,7 +119,7 @@ function addSearchBar(square) {
 }
 
 async function searchArtists(input, square) {
-    if (input.value.length < 2) return; // Require at least 2 characters
+    if (input.value.length < 2) return; // Require at least 2 characters before searching
 
     const token = await getSpotifyAccessToken();
     if (!token) {
@@ -133,7 +139,7 @@ async function searchArtists(input, square) {
         }
 
         const data = await response.json();
-        console.log("Spotify API Response:", data); // Log for debugging
+        console.log("Spotify API Response:", data); // Debugging
 
         if (!data.artists || !data.artists.items || data.artists.items.length === 0) {
             console.warn("No artists found for:", input.value);
@@ -152,12 +158,15 @@ async function searchArtists(input, square) {
 
         // Populate dropdown with artist names
         data.artists.items.forEach((artist) => {
-            console.log(`Artist Found: ${artist.name}`, artist); // Debugging
+            console.log(`Artist Found: ${artist.name}`, artist);
 
             const option = document.createElement("div");
             option.className = "dropdown-option";
             option.textContent = artist.name;
-            option.onclick = () => selectArtist(artist, square);
+            option.onclick = () => {
+                selectArtist(artist, square);
+                dropdown.remove(); // Remove dropdown only when an artist is selected
+            };
             dropdown.appendChild(option);
         });
 
@@ -169,13 +178,14 @@ async function searchArtists(input, square) {
     }
 }
 
+
 function selectArtist(artist, square) {
     if (!artist || !artist.name) {
         console.error("Invalid artist selected.");
         return;
     }
 
-    console.log("Selected Artist:", artist); // Log selected artist data
+    console.log("Selected Artist:", artist);
 
     // Clear square before adding new elements
     square.innerHTML = "";
@@ -183,12 +193,12 @@ function selectArtist(artist, square) {
     // Get the artist's image from Spotify (leave blank if none exists)
     const artistImageUrl = artist.images?.[0]?.url || null;
 
-    // Create artist name element first
+    // Create the artist name element
     const artistName = document.createElement("div");
     artistName.textContent = artist.name;
     artistName.className = "selected-artist";
 
-    // Append artist name before adding image
+    // Append artist name first
     square.appendChild(artistName);
 
     // If the artist has an image, display it
@@ -207,7 +217,7 @@ function selectArtist(artist, square) {
     // Allow users to click the artist name to re-enable editing
     artistName.onclick = () => addSearchBar(square);
 
-    // Ensure board is saved to Firebase after selection
+    // ✅ Ensure the board is saved to Firebase after selection
     saveBingoBoard(auth.currentUser.uid);
 }
 

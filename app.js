@@ -110,29 +110,53 @@ function addSearchBar(square) {
     searchInput.focus();
 }
 
-// Query Spotify Artists
 async function searchArtists(input, square) {
     if (input.value.length < 2) return;
 
     const token = await getSpotifyAccessToken();
-    const response = await fetch(
-        `https://api.spotify.com/v1/search?q=${input.value}&type=artist`,
-        { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const data = await response.json();
+    if (!token) {
+        console.error("No valid Spotify Access Token available.");
+        alert("Unable to search artists. Please try again later.");
+        return;
+    }
 
-    const dropdown = document.createElement("div");
-    dropdown.className = "dropdown";
+    try {
+        const response = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(input.value)}&type=artist`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-    data.artists.items.forEach((artist) => {
-        const option = document.createElement("div");
-        option.className = "dropdown-option";
-        option.textContent = artist.name;
-        option.onclick = () => selectArtist(artist, square);
-        dropdown.appendChild(option);
-    });
+        if (!response.ok) {
+            throw new Error(`Spotify Search Error: ${response.status} ${response.statusText}`);
+        }
 
-    square.appendChild(dropdown);
+        const data = await response.json();
+
+        // Ensure artists exist before proceeding
+        if (!data.artists || !data.artists.items || data.artists.items.length === 0) {
+            console.warn("No artists found for:", input.value);
+            alert("No artists found. Try a different search.");
+            return;
+        }
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "dropdown";
+
+        data.artists.items.forEach((artist) => {
+            const option = document.createElement("div");
+            option.className = "dropdown-option";
+            option.textContent = artist.name;
+            option.onclick = () => selectArtist(artist, square);
+            dropdown.appendChild(option);
+        });
+
+        square.innerHTML = "";
+        square.appendChild(input);
+        square.appendChild(dropdown);
+    } catch (error) {
+        console.error("Error searching artists on Spotify:", error);
+        alert("Error searching for artists. Please try again.");
+    }
 }
 
 // Select Artist and Save
@@ -180,24 +204,32 @@ function loadBingoBoard(userId) {
         .catch((error) => console.error('Error loading bingo board:', error));
 }
 
-// Get Spotify Access Token (Client Credentials Flow)
 async function getSpotifyAccessToken() {
-    if (spotifyAccessToken) return spotifyAccessToken;
+    const clientId = "b95b505ced454db2a08dc886d60b55b2";
+    const clientSecret = "39bdaeeb64bd4de2a390918eb62ce588"; // Ensure this is correct
 
-    const clientId = b95b505ced454db2a08dc886d60b55b2;
-    const clientSecret = '39bdaeeb64bd4de2a390918eb62ce588'; // Replace with your Spotify Client Secret
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-        },
-        body: 'grant_type=client_credentials',
-    });
+    try {
+        const response = await fetch("https://accounts.spotify.com/api/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+            },
+            body: "grant_type=client_credentials",
+        });
 
-    const data = await response.json();
-    spotifyAccessToken = data.access_token;
-    return spotifyAccessToken;
+        if (!response.ok) {
+            throw new Error(`Spotify Token Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Spotify Access Token Retrieved:", data.access_token);
+        return data.access_token;
+    } catch (error) {
+        console.error("Error fetching Spotify access token:", error);
+        alert("Error fetching Spotify token. Please try again later.");
+        return null;
+    }
 }
 
 window.onload = () => {

@@ -177,9 +177,17 @@ function selectArtist(artist, square) {
     // Get the artist's image from Spotify (leave blank if none exists)
     const artistImageUrl = artist.images?.[0]?.url || null;
 
+    // Create artist name element first
+    const artistName = document.createElement("div");
+    artistName.textContent = artist.name;
+    artistName.className = "selected-artist";
+
+    // Append artist name before adding image
+    square.appendChild(artistName);
+
     // If the artist has an image, display it
     if (artistImageUrl) {
-        console.log(`Displaying image for ${artist.name}: ${artistImageUrl}`); // Log image URL
+        console.log(`Displaying image for ${artist.name}: ${artistImageUrl}`);
 
         const artistImage = document.createElement("img");
         artistImage.src = artistImageUrl;
@@ -190,21 +198,13 @@ function selectArtist(artist, square) {
         console.warn(`No image available for ${artist.name}`);
     }
 
-    // Create the artist name element
-    const artistName = document.createElement("div");
-    artistName.textContent = artist.name;
-    artistName.className = "selected-artist"; // Click to edit
-    square.appendChild(artistName);
-
     // Allow users to click the artist name to re-enable editing
     artistName.onclick = () => addSearchBar(square);
 
-    // Allow editing even after submission
-    square.onclick = () => addSearchBar(square);
-
-    // Save the updated selection to Firebase
+    // Ensure board is saved to Firebase after selection
     saveBingoBoard(auth.currentUser.uid);
 }
+
 
 // Save Bingo Board to Firebase
 function saveBingoBoard(userId) {

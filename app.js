@@ -119,6 +119,12 @@ function addSearchBar(square) {
         searchArtists(searchInput, square);
         console.log("Search triggered:", searchInput.value); // Debugging
     };
+        // Keep focus on input when dropdown is generated
+        searchInput.onfocus = () => {
+            const dropdown = square.querySelector(".dropdown");
+            if (dropdown) dropdown.style.display = "block";
+        };
+    
 
     square.appendChild(searchInput);
     searchInput.focus();
@@ -176,7 +182,7 @@ async function searchArtists(input, square) {
             dropdown.appendChild(option);
         });
 
-        // ✅ Append dropdown to the search bar's parent container
+        // ✅ Append dropdown to square (to maintain positioning)
         square.appendChild(dropdown);
         console.log("Dropdown added to:", square);
     } catch (error) {
@@ -184,6 +190,7 @@ async function searchArtists(input, square) {
         alert("Error searching for artists. Please try again.");
     }
 }
+
 
 function selectArtist(artistName, square) {
     if (!artistName) {

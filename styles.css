@@ -40,6 +40,8 @@ h1 {
 
 /* Bingo Board */
 #bingo-board {
+    position: relative; /* Context for absolute positioning */
+    overflow: visible; /* Ensure dropdown is not clipped */
     display: grid;
     grid-template-columns: repeat(5, 1fr); /* Always 5 columns */
     grid-template-rows: repeat(5, 1fr); /* Always 5 rows */
@@ -108,16 +110,18 @@ h1 {
 .dropdown {
     position: absolute;
     background: white;
-    border: 2px solid #ccc;
+    border: 1px solid #ccc;
     max-height: 200px;
     overflow-y: auto;
-    width: 100%;
-    top: 100%;
+    width: 100%; /* Match the input field */
+    top: 100%; /* Place directly below the input */
     left: 0;
-    z-index: 9999 !important; /* ✅ Ensure it's on top of other elements */
+    z-index: 9999; /* Ensure it's above other elements */
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
-    display: block !important; /* ✅ Ensure it's visible */
+    display: block; /* Ensure visibility */
+    margin-top: 5px; /* Add spacing from the input */
 }
+
 
 .dropdown-option {
     padding: 8px;

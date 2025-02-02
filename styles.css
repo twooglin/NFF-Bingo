@@ -111,15 +111,16 @@ h1 {
     position: absolute;
     background: white;
     border: 1px solid #ccc;
-    max-height: 200px;
+    max-height: 100px;
     overflow-y: auto;
     width: 100%; /* Match the input field */
-    top: 100%; /* Place directly below the input */
+    top: 5%; /* Place directly below the input */
     left: 0;
     z-index: 9999; /* Ensure it's above other elements */
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
     display: block; /* Ensure visibility */
     margin-top: 5px; /* Add spacing from the input */
+    border-radius: 5px;
 }
 
 

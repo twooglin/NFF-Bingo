@@ -106,6 +106,10 @@ function addSearchBar(square) {
     searchInput.className = "artist-search";
     searchInput.placeholder = "Type artist name";
 
+    // ✅ Add a unique id and name attribute for autofill support
+    searchInput.id = `artist-search-${square.dataset.index}`;
+    searchInput.name = `artist-search-${square.dataset.index}`;
+
     // ✅ Ensure focus remains on input
     searchInput.addEventListener("focus", () => {
         searchInput.select();

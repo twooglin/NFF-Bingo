@@ -152,7 +152,7 @@ async function searchArtists(input, square) {
             return;
         }
 
-        // Remove existing dropdown before creating a new one
+        // Remove any existing dropdown before creating a new one
         let existingDropdown = square.querySelector(".dropdown");
         if (existingDropdown) {
             existingDropdown.remove();
@@ -162,7 +162,7 @@ async function searchArtists(input, square) {
         const dropdown = document.createElement("div");
         dropdown.className = "dropdown";
 
-        // Populate dropdown with artist names
+        // Populate dropdown with artist names only
         data.artists.items.forEach((artist) => {
             console.log(`Artist Found: ${artist.name}`);
 
@@ -171,8 +171,7 @@ async function searchArtists(input, square) {
             option.textContent = artist.name;
             option.onclick = () => {
                 selectArtist(artist, square);
-                dropdown.remove(); // Remove dropdown after selection
-                input.blur(); // Prevents search box from losing focus too soon
+                dropdown.remove(); // ✅ Remove dropdown after selection
             };
             dropdown.appendChild(option);
         });
@@ -185,6 +184,7 @@ async function searchArtists(input, square) {
         alert("Error searching for artists. Please try again.");
     }
 }
+
 
 function selectArtist(artist, square) {
     if (!artist || !artist.name) {

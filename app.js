@@ -162,7 +162,7 @@ async function searchArtists(input, square) {
         const dropdown = document.createElement("div");
         dropdown.className = "dropdown";
 
-        // Populate dropdown with artist names only
+        // Populate dropdown with artist names
         data.artists.items.forEach((artist) => {
             console.log(`Artist Found: ${artist.name}`);
 
@@ -170,8 +170,8 @@ async function searchArtists(input, square) {
             option.className = "dropdown-option";
             option.textContent = artist.name;
             option.onclick = () => {
-                selectArtist(artist, square);
-                dropdown.remove(); // ✅ Remove dropdown after selection
+                selectArtist(artist.name, square); // Pass only the name
+                dropdown.remove(); // Remove dropdown after selection
             };
             dropdown.appendChild(option);
         });
@@ -185,48 +185,32 @@ async function searchArtists(input, square) {
     }
 }
 
-
-function selectArtist(artist, square) {
-    if (!artist || !artist.name) {
+function selectArtist(artistName, square) {
+    if (!artistName) {
         console.error("Invalid artist selected.");
         return;
     }
 
-    console.log("Selected Artist:", artist);
+    console.log("Selected Artist:", artistName);
 
     // Clear square before adding new elements
     square.innerHTML = "";
 
-    // Get the artist's image from Spotify (leave blank if none exists)
-    const artistImageUrl = artist.images?.[0]?.url || null;
-
     // Create the artist name element
-    const artistName = document.createElement("div");
-    artistName.textContent = artist.name;
-    artistName.className = "selected-artist";
+    const artistNameDiv = document.createElement("div");
+    artistNameDiv.textContent = artistName;
+    artistNameDiv.className = "selected-artist";
 
-    // Append artist name first
-    square.appendChild(artistName);
-
-    // If the artist has an image, display it
-    if (artistImageUrl) {
-        console.log(`Displaying image for ${artist.name}: ${artistImageUrl}`);
-
-        const artistImage = document.createElement("img");
-        artistImage.src = artistImageUrl;
-        artistImage.alt = artist.name;
-        artistImage.className = "artist-image";
-        square.appendChild(artistImage);
-    } else {
-        console.warn(`No image available for ${artist.name}`);
-    }
+    // Append artist name
+    square.appendChild(artistNameDiv);
 
     // Allow users to click the artist name to re-enable editing
-    artistName.onclick = () => addSearchBar(square);
+    artistNameDiv.onclick = () => addSearchBar(square);
 
     // ✅ Ensure the board is saved to Firebase after selection
     saveBingoBoard(auth.currentUser.uid);
 }
+
 
 // Save Bingo Board to Firebase
 function saveBingoBoard(userId) {

@@ -444,7 +444,7 @@ function formatLeaderboardBoard(boardData) {
 
 // Function to Calculate Correct Guesses
 function calculateCorrectGuesses(boardData) {
-    const announcedArtists = ["Taylor Swift"]; // Replace with dynamic list
+    const announcedArtists = ["Mt. Joy", "Jeff Tweedy"]; // Replace with dynamic list
     let correctCount = 0;
 
     Object.values(boardData).forEach((artist) => {

@@ -395,9 +395,9 @@ function loadLeaderboard() {
 
         const boards = snapshot.val();
 
-        // Dynamically recalculate correct guesses and highlight squares
+        // Dynamically recalculate correct guesses using the most recent announced artists
         const sortedBoards = Object.entries(boards).map(([userId, board]) => {
-            const dynamicCount = calculateCorrectGuesses(board.board, false); // ✅ Now works for leaderboard too
+            const dynamicCount = calculateCorrectGuesses(board.board || {}); // ✅ Always recalculate
             return { userId, board, dynamicCount };
         }).sort((a, b) => b.dynamicCount - a.dynamicCount);
 
@@ -429,10 +429,10 @@ function displayUserBoard(userId, board) {
 
     // Generate the board layout
     let boardHTML = '<div class="leaderboard-grid">';
-    Object.entries(board.board).forEach(([index, artist]) => {
-        const isCorrect = getAnnouncedArtists().includes(artist);
-        boardHTML += `<div class="leaderboard-square ${isCorrect ? 'correct-artist' : ''}">${artist}</div>`;
-    });
+    for (let i = 0; i < 25; i++) {
+        const artistName = board.board[i] || "";
+        boardHTML += `<div class="leaderboard-square">${artistName}</div>`;
+    }
     boardHTML += "</div>";
 
     selectedBingoBoard.innerHTML = boardHTML;
@@ -451,24 +451,13 @@ function formatLeaderboardBoard(boardData) {
 }
 
 // Function to Calculate Correct Guesses
-function calculateCorrectGuesses(boardData, isUserBoard = true) {
-    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Wilco","Julien Baker","Torres","BCUC"]; // Replace with dynamic list
+function calculateCorrectGuesses(boardData) {
+    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Julien Baker","Torres","BCUC"]; // Replace with dynamic list
     let correctCount = 0;
 
-    Object.entries(boardData).forEach(([index, artist]) => {
-        const square = document.querySelector(`.bingo-square[data-index='${index}']`);
-
+    Object.values(boardData).forEach((artist) => {
         if (announcedArtists.includes(artist)) {
             correctCount++;
-
-            // ✅ Highlight correct squares in green
-            if (isUserBoard && square) {
-                square.classList.add("correct-artist");
-            }
-        } else {
-            if (isUserBoard && square) {
-                square.classList.remove("correct-artist"); // Ensure incorrect guesses aren't green
-            }
         }
     });
 
@@ -513,5 +502,4 @@ window.onload = () => {
 // Expose functions globally so they can be called from index.html
 window.submitBingoBoard = submitBingoBoard;
 window.clearBingoBoard = clearBingoBoard;
-
 

@@ -380,38 +380,34 @@ function checkForUpdates() {
     });
 }
 
-get(leaderboardRef).then((snapshot) => {
-    if (!snapshot.exists()) return;
+function loadLeaderboard() {
+    const leaderboardRef = ref(database, "submittedBoards");
 
-    const leaderboardBody = document.getElementById("leaderboard-body");
-    if (!leaderboardBody) {
-        console.error("Leaderboard body element not found in the HTML.");
-        return;
-    }
-    leaderboardBody.innerHTML = ""; // Clear previous entries
+    get(leaderboardRef).then((snapshot) => {
+        if (!snapshot.exists()) return;
 
-    const boards = snapshot.val();
-    // Create an array of boards with dynamic correct counts
-    const sortedBoards = Object.entries(boards).map(([userId, board]) => {
-        // Recalculate correct guesses using the current announcedArtists
-        const dynamicCount = calculateCorrectGuesses(board.board || {});
-        return { userId, board, dynamicCount };
-    }).sort((a, b) => b.dynamicCount - a.dynamicCount);
-
-    // Populate the leaderboard table
-    sortedBoards.forEach(({ userId, board, dynamicCount }) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td class="leaderboard-name">${board.displayName}</td>
-            <td>${dynamicCount}</td>
-        `;
-        row.onclick = () => displayUserBoard(userId, board);
-        leaderboardBody.appendChild(row);
+        const boards = snapshot.val();
+        // Create an array of boards with dynamic correct counts
+        const sortedBoards = Object.entries(boards).map(([userId, board]) => {
+            // Recalculate correct guesses using the current announcedArtists
+            const dynamicCount = calculateCorrectGuesses(board.board || {});
+            return { userId, board, dynamicCount };
+        }).sort((a, b) => b.dynamicCount - a.dynamicCount);
+    
+        // Populate the leaderboard table
+        sortedBoards.forEach(({ userId, board, dynamicCount }) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td class="leaderboard-name">${board.displayName}</td>
+                <td>${dynamicCount}</td>
+            `;
+            row.onclick = () => displayUserBoard(userId, board);
+            leaderboardBody.appendChild(row);
+        });
+    }).catch((error) => {
+        console.error("Error loading leaderboard:", error);
     });
-}).catch((error) => {
-    console.error("Error loading leaderboard:", error);
-});
-
+}
 
 function displayUserBoard(userId, board) {
     const selectedBoardContainer = document.getElementById("selected-board-container");

@@ -380,6 +380,20 @@ function checkForUpdates() {
     });
 }
 
+// Function to Calculate Correct Guesses
+function calculateCorrectGuesses(boardData) {
+    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Julien Baker","Torres","BCUC"]; // Replace with dynamic list
+    let correctCount = 0;
+
+    Object.values(boardData).forEach((artist) => {
+        if (announcedArtists.includes(artist)) {
+            correctCount++;
+        }
+    });
+
+    return correctCount;
+}
+
 function loadLeaderboard() {
     const leaderboardRef = ref(database, "submittedBoards");
 
@@ -448,20 +462,6 @@ function formatLeaderboardBoard(boardData) {
     }
     boardHTML += "</div>";
     return boardHTML;
-}
-
-// Function to Calculate Correct Guesses
-function calculateCorrectGuesses(boardData) {
-    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Julien Baker","Torres","BCUC"]; // Replace with dynamic list
-    let correctCount = 0;
-
-    Object.values(boardData).forEach((artist) => {
-        if (announcedArtists.includes(artist)) {
-            correctCount++;
-        }
-    });
-
-    return correctCount;
 }
 
 // Function to Clear the Bingo Board

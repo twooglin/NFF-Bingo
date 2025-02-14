@@ -386,20 +386,22 @@ function loadLeaderboard() {
     get(leaderboardRef).then((snapshot) => {
         if (!snapshot.exists()) return;
 
+        // Ensure leaderboard elements exist
+        const leaderboardBody = document.getElementById("leaderboard-body");
+        if (!leaderboardBody) {
+            console.error("Leaderboard body element not found in the HTML.");
+            return;
+        }
+        leaderboardBody.innerHTML = ""; // Clear previous entries
+
         const boards = snapshot.val();
-        // Create an array of boards with dynamic correct counts
-        const sortedBoards = Object.entries(boards).map(([userId, board]) => {
-            // Recalculate correct guesses using the current announcedArtists
-            const dynamicCount = calculateCorrectGuesses(board.board || {});
-            return { userId, board, dynamicCount };
-        }).sort((a, b) => b.dynamicCount - a.dynamicCount);
-    
-        // Populate the leaderboard table
-        sortedBoards.forEach(({ userId, board, dynamicCount }) => {
+        const sortedBoards = Object.entries(boards).sort((a, b) => b[1].correctCount - a[1].correctCount);
+
+        sortedBoards.forEach(([userId, board]) => {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td class="leaderboard-name">${board.displayName}</td>
-                <td>${dynamicCount}</td>
+                <td>${board.correctCount}</td>
             `;
             row.onclick = () => displayUserBoard(userId, board);
             leaderboardBody.appendChild(row);
@@ -492,4 +494,6 @@ window.onload = () => {
 // Expose functions globally so they can be called from index.html
 window.submitBingoBoard = submitBingoBoard;
 window.clearBingoBoard = clearBingoBoard;
+
+
 

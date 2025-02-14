@@ -386,7 +386,6 @@ function loadLeaderboard() {
     get(leaderboardRef).then((snapshot) => {
         if (!snapshot.exists()) return;
 
-        // Ensure leaderboard elements exist
         const leaderboardBody = document.getElementById("leaderboard-body");
         if (!leaderboardBody) {
             console.error("Leaderboard body element not found in the HTML.");
@@ -395,21 +394,30 @@ function loadLeaderboard() {
         leaderboardBody.innerHTML = ""; // Clear previous entries
 
         const boards = snapshot.val();
-        const sortedBoards = Object.entries(boards).sort((a, b) => b[1].correctCount - a[1].correctCount);
 
-        sortedBoards.forEach(([userId, board]) => {
+        // Dynamically recalculate correct guesses using the most recent announced artists
+        const sortedBoards = Object.entries(boards).map(([userId, board]) => {
+            const dynamicCount = calculateCorrectGuesses(board.board || {}); // ✅ Always recalculate
+            return { userId, board, dynamicCount };
+        }).sort((a, b) => b.dynamicCount - a.dynamicCount);
+
+        // Populate the leaderboard table
+        sortedBoards.forEach(({ userId, board, dynamicCount }) => {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td class="leaderboard-name">${board.displayName}</td>
-                <td>${board.correctCount}</td>
+                <td>${dynamicCount}</td>
             `;
             row.onclick = () => displayUserBoard(userId, board);
             leaderboardBody.appendChild(row);
         });
+
+        console.log("Leaderboard updated with dynamically calculated correct guesses.");
     }).catch((error) => {
         console.error("Error loading leaderboard:", error);
     });
 }
+
 
 function displayUserBoard(userId, board) {
     const selectedBoardContainer = document.getElementById("selected-board-container");
@@ -444,7 +452,7 @@ function formatLeaderboardBoard(boardData) {
 
 // Function to Calculate Correct Guesses
 function calculateCorrectGuesses(boardData) {
-    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy"]; // Replace with dynamic list
+    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Wilco","Julien Baker","Torres","BCUC"]; // Replace with dynamic list
     let correctCount = 0;
 
     Object.values(boardData).forEach((artist) => {
@@ -494,6 +502,4 @@ window.onload = () => {
 // Expose functions globally so they can be called from index.html
 window.submitBingoBoard = submitBingoBoard;
 window.clearBingoBoard = clearBingoBoard;
-
-
 

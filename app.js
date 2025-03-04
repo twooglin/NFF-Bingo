@@ -382,7 +382,7 @@ function checkForUpdates() {
 
 // Function to Calculate Correct Guesses
 function calculateCorrectGuesses(boardData) {
-    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Julien Baker","Torres","BCUC","Michael Kiwanuka","The Deslondes","Jesse Welles", "Alex G"]; // Replace with dynamic list
+    const announcedArtists = ["Waxahatchee","Mt. Joy","Jeff Tweedy","Julien Baker","Torres","BCUC","Michael Kiwanuka","The Deslondes","Jesse Welles", "Alex G", "Kim Deal", "Hurray For The Riff Raff", "Mon Rovia", "Stephen Wilson Jr.", "I'm With Her", "Iron & Wine"]; // Replace with dynamic list
     let correctCount = 0;
 
     Object.values(boardData).forEach((artist) => {
